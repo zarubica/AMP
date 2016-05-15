@@ -1,11 +1,17 @@
 #include<stdio.h>
 
 void BuildSudoku(int sud[9][9]);
+
 int IsCorrectNumbers(int sud[9][9]);
 int IsCorrectColumn(int sud[9][9]);
 int IsCorrectRow(int sud[9][9]);
 int IsCorrectSubSudoku(int sud[9][9]);
 int IsCorrect(int sud[9][9]);
+
+int FillSinglesColumn(int sud[9][9]);
+int FillSinglesRow(int sud[9][9]);
+int FillSinglesSubSudoku(int sud[9][9]);
+void FillSingles(int sud[9][9]);
 
 void main() {
 	int **sudoku[9][9];
@@ -14,6 +20,8 @@ void main() {
 	
 	if (IsCorrect(sudoku)) printf("Sudoku je dobar\n");
 	else printf("Sudoku nije dobar\n");
+
+	FillSingles(sudoku);	
 }
 
 void BuildSudoku(int sud[9][9]) {
@@ -37,7 +45,6 @@ void BuildSudoku(int sud[9][9]) {
 
 	sud[8][0] = 3; sud[8][1] = 7; sud[8][2] = 4; /**/ sud[8][3] = 9; sud[8][4] = 6; sud[8][5] = 2; /**/ sud[8][6] = 8; sud[8][7] = 1; sud[8][8] = 5;
 	/**********************************************************************************************************************************************/
-
 }
 
 int IsCorrectNumbers(int sud[9][9]) {
@@ -92,7 +99,7 @@ int IsCorrectSubSudoku(int sud[9][9]) {
 
 		for (j = 0; j < 9; j++) line[j] = 0;
 
-		for (j = 0; j < 9; j++) line[sud[((int)(i / 3)) * 3 + j / 3][j % 3] - 1] = 1;
+		for (j = 0; j < 9; j++) line[sud[((int)(i / 3)) * 3 + j / 3][j % 3 + (i % 3) * 3] - 1] = 1;
 
 		for (j = 0; j < 9; j++) if (line[j] == 0) return 0;
 
@@ -112,4 +119,93 @@ int IsCorrect(int sud[9][9]) {
 	if (!IsCorrectSubSudoku(sud)) return 0;
 	
 	return 1;	
+}
+
+int FillSinglesColumn(int sud[9][9]) {
+	int line[9];
+	int i, j, numbers, temp, sum, flag = 0;
+
+	for (i = 0; i < 9; i++) {
+		numbers = 0;
+
+		for (j = 0; j < 9; j++) line[j] = 0;
+
+		for (j = 0; j < 9; j++) if (sud[i][j]) line[sud[i][j] - 1] = 1;
+
+		for (j = 0; j < 9; j++) if (line[j]) numbers++;
+
+		if (numbers == 8) {
+			sum = 0;
+			for (j = 0; j < 9; j++)	{
+				if (!sud[i][j]) temp = j;
+				sum += sud[i][j];
+			}
+			sud[i][temp] = 45 - sum;
+			flag = 1;
+		}
+	}
+	return flag;
+}
+
+int FillSinglesRow(int sud[9][9]) {
+	int line[9];
+	int i, j, numbers, temp, sum, flag = 0;
+
+	for (i = 0; i < 9; i++) {
+		numbers = 0;
+
+		for (j = 0; j < 9; j++) line[j] = 0;
+
+		for (j = 0; j < 9; j++) if (sud[j][i]) line[sud[j][i] - 1] = 1;
+
+		for (j = 0; j < 9; j++) if (line[j]) numbers++;
+
+		if (numbers == 8) {
+			sum = 0;
+			for (j = 0; j < 9; j++) {
+				if (!sud[j][i]) temp = j; 
+				sum += sud[j][i];
+			}
+			sud[temp][i] = 45 - sum;
+			flag = 1;
+		}
+	}
+	return flag;
+}
+
+int FillSinglesSubSudoku(int sud[9][9]) {
+	int line[9];
+	int i, j, numbers, temp, sum, flag = 0;
+
+	for (i = 0; i < 9; i++) {
+		numbers = 0;
+
+		for (j = 0; j < 9; j++) line[j] = 0;
+
+		for (j = 0; j < 9; j++) line[sud[((int)(i / 3)) * 3 + j / 3][j % 3 + (i % 3) * 3] - 1] = 1;
+		
+		for (j = 0; j < 9; j++) if (line[j]) numbers++;
+
+		if (numbers == 8) {
+			sum = 0;
+			for (j = 0; j < 9; j++) {
+				if (!sud[((int)(i / 3)) * 3 + j / 3][j % 3 + (i % 3) * 3]) temp = j;
+				sum += sud[((int)(i / 3)) * 3 + j / 3][j % 3 + (i % 3) * 3];
+			}
+			sud[((int)(i / 3)) * 3 + temp / 3][temp % 3 + (i % 3) * 3] = 45 - sum;
+			flag = 1;
+		}
+	}
+	return flag;
+}
+
+void FillSingles(int sud[9][9]) {
+	int changes = 1;
+
+	while (changes) {
+		changes = 0;
+		changes += FillSinglesColumn(sud);
+		changes += FillSinglesRow(sud);
+		changes += FillSinglesSubSudoku(sud);
+	}
 }
